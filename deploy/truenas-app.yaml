@@ -1,0 +1,25 @@
+# TrueNAS SCALE (ElectricEel/Fangtooth) — Apps > Custom App > "Install via YAML".
+# Paste this whole file. Change the password before deploying.
+# Schema is applied afterwards from your PC (node src/setup.js) — nothing to mount here.
+services:
+  nasmem-db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nasmem
+      POSTGRES_PASSWORD: CHANGE_ME_STRONG
+      POSTGRES_DB: nasmem
+      # keep WAL bounded on a low-traffic box
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    ports:
+      - "5432:5432"
+    volumes:
+      - nasmem-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nasmem -d nasmem"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  nasmem-data:

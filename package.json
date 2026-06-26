@@ -1,0 +1,25 @@
+{
+  "name": "claude-brain",
+  "version": "1.0.0",
+  "description": "Shared cross-machine memory for Claude Code, backed by Postgres+pgvector on a NAS",
+  "type": "module",
+  "bin": {
+    "claude-brain-mcp": "src/mcp-server.js"
+  },
+  "scripts": {
+    "mcp": "node src/mcp-server.js",
+    "setup": "node src/setup.js",
+    "import": "node migrate/import-pg.js",
+    "ping": "node src/ping.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "pg": "^8.13.0"
+  },
+  "optionalDependencies": {
+    "@huggingface/transformers": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

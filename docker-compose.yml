@@ -1,0 +1,24 @@
+services:
+  nasmem-db:
+    image: pgvector/pgvector:pg16
+    container_name: nasmem-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nasmem
+      # CHANGE THIS before first launch:
+      POSTGRES_PASSWORD: CHANGE_ME
+      POSTGRES_DB: nasmem
+    ports:
+      - "5432:5432"
+    volumes:
+      - nasmem-data:/var/lib/postgresql/data
+      # schema.sql runs automatically on first init (empty data dir only):
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nasmem -d nasmem"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  nasmem-data:
