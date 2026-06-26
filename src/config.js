@@ -23,6 +23,10 @@ export function loadConfig() {
     machine: process.env.BRAIN_MACHINE || raw.machine || hostname(),
     // how many memories SessionStart injects as context
     contextLimit: raw.contextLimit || 12,
+    // optional LLM distillation of sessions into rich observations (Sonnet)
+    summarize: process.env.BRAIN_SUMMARIZE === "1" ? true : Boolean(raw.summarize),
+    summarizeModel: raw.summarizeModel || "claude-sonnet-4-6",
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY || raw.anthropicApiKey || null,
   };
   return cached;
 }

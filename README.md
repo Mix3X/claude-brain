@@ -32,10 +32,13 @@ données auquel les clients parlent par le réseau. C'est ce que fait claude-bra
 Le NAS doit déjà tourner (voir "Déploiement NAS" plus bas). Sur la machine cliente :
 
 ```powershell
-git clone https://github.com/<TON_USER>/claude-brain.git
+gh repo clone Mix3X/claude-brain
 cd claude-brain
-pwsh -File install.ps1 -NasIp 192.168.1.28 -NasPassword 'TON_MOT_DE_PASSE'
+pwsh -File install.ps1 -NasIp 192.168.1.28
 ```
+
+Le mot de passe NAS est **demandé en saisie sécurisée** (jamais en argument, jamais dans
+l'historique shell).
 
 `install.ps1` fait tout : `npm install`, écrit `~/.claude-brain/config.json`, enregistre le
 serveur MCP `brain`, câble les hooks dans `~/.claude/settings.json` (idempotent, avec backup),
@@ -43,9 +46,28 @@ et teste la connexion au NAS. Options :
 
 - `-Machine PC-2` : nom de la machine (défaut = nom Windows)
 - `-Embed` : active la recherche sémantique (nécessite `npm install @huggingface/transformers`)
+- `-ApiKey 'sk-ant-...'` : active le résumeur LLM (Sonnet) — voir ci-dessous
 - `-DisableClaudeMem` : désactive un plugin claude-mem résiduel
 
 Redémarre Claude Code à la fin. Vérifie avec `/mcp` que `brain` est connecté.
+
+## Résumeur LLM (observations distillées, optionnel)
+
+Comme claude-mem, claude-brain peut distiller chaque session en **observations durables**
+via Claude Sonnet — sans le sous-process SDK fragile. À la fin de session, le hook `Stop`
+stocke un résumé heuristique instantané (toujours), puis lance **en arrière-plan détaché**
+un appel direct à l'API Messages (Sonnet) qui range 1-6 observations réutilisables. Robuste :
+un seul appel, timeout 25 s, échec → log dans `~/.claude-brain/summarize.log`, jamais de
+retry ni de boucle, jamais de blocage de session.
+
+Activation : `-ApiKey` à l'install, ou dans `config.json` :
+
+```json
+{ "summarize": true, "summarizeModel": "claude-sonnet-4-6", "anthropicApiKey": "sk-ant-..." }
+```
+
+(aussi lisible via la variable d'env `ANTHROPIC_API_KEY`). Coût = 1 appel Sonnet par session,
+facturé sur ta clé API (séparé de l'abonnement Claude Code).
 
 ---
 

@@ -11,22 +11,30 @@
   Optionally disables a leftover claude-mem plugin.
 
   Run from the repo root after cloning:
-    pwsh -File install.ps1 -NasIp 192.168.1.28 -NasPassword 'xxxxx'
+    pwsh -File install.ps1 -NasIp 192.168.1.28
+  The NAS password is prompted securely (never passed on the command line).
+  Enable the LLM distiller by adding -ApiKey 'sk-ant-...' (Sonnet).
 
   All settings.json / config.json writes are backed up first. Re-running is safe.
 #>
 param(
   [Parameter(Mandatory = $true)][string]$NasIp,
-  [Parameter(Mandatory = $true)][string]$NasPassword,
   [string]$Machine = $env:COMPUTERNAME,
   [string]$NasUser = "nasmem",
   [string]$NasDb   = "nasmem",
   [int]$NasPort    = 5432,
   [switch]$Embed,
+  [string]$ApiKey,
+  [string]$SummarizeModel = "claude-sonnet-4-6",
   [switch]$DisableClaudeMem
 )
 
 $ErrorActionPreference = "Stop"
+
+# NAS password: prompt securely, never on the command line.
+$sec = Read-Host "Mot de passe Postgres NAS (user '$NasUser')" -AsSecureString
+$NasPassword = [System.Net.NetworkCredential]::new('', $sec).Password
+if ([string]::IsNullOrEmpty($NasPassword)) { throw "Mot de passe vide." }
 $repo = $PSScriptRoot
 $node = (Get-Command node -ErrorAction SilentlyContinue)?.Source
 if (-not $node) { throw "node introuvable dans le PATH. Installe Node.js >= 20." }
@@ -53,8 +61,13 @@ $cfg = [ordered]@{
   embed   = [bool]$Embed
   machine = $Machine
 }
+if ($ApiKey) {
+  $cfg.summarize = $true
+  $cfg.summarizeModel = $SummarizeModel
+  $cfg.anthropicApiKey = $ApiKey
+}
 ($cfg | ConvertTo-Json) | Set-Content $cfgPath -Encoding utf8
-Write-Host "  -> $cfgPath (machine=$Machine)"
+Write-Host "  -> $cfgPath (machine=$Machine, summarize=$([bool]$ApiKey))"
 
 # 3) MCP server (idempotent: remove then add)
 Write-Host "[3/5] MCP server 'brain'..." -ForegroundColor Yellow
