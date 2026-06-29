@@ -20,5 +20,23 @@ services:
       timeout: 5s
       retries: 5
 
+  nasmem-web:
+    build: .
+    container_name: nasmem-web
+    restart: unless-stopped
+    depends_on:
+      nasmem-db:
+        condition: service_healthy
+    environment:
+      BRAIN_PG_HOST: nasmem-db
+      BRAIN_PG_PORT: "5432"
+      BRAIN_PG_USER: nasmem
+      BRAIN_PG_PASSWORD: CHANGE_ME
+      BRAIN_PG_DATABASE: nasmem
+      BRAIN_WEB_HOST: 0.0.0.0
+      BRAIN_WEB_PORT: "8787"
+    ports:
+      - "8787:8787"
+
 volumes:
   nasmem-data:

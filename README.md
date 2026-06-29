@@ -93,6 +93,29 @@ node migrate/import-pg.js memories.jsonl  # (optionnel) importe une mémoire cla
 
 ---
 
+## Viewer web
+
+Page web pour parcourir projets, sessions, observations, résumés et prompts, avec recherche.
+
+**En local (immédiat, sur n'importe quelle machine cliente) :**
+```powershell
+npm run web              # -> http://127.0.0.1:8787
+```
+Pour y accéder depuis ton téléphone / un autre PC du LAN :
+```powershell
+$env:BRAIN_WEB_HOST="0.0.0.0"; npm run web   # -> http://<ip-du-pc>:8787
+```
+
+**Always-on sur le NAS (accessible partout) :** le `docker-compose.yml` inclut un service
+`nasmem-web` (image construite via `Dockerfile`, configurée par variables d'env). Avec Docker :
+```bash
+docker compose up -d nasmem-web   # -> http://192.168.1.28:8787
+```
+Sur TrueNAS (Custom App ne build pas depuis les sources), il faut une image publiée
+(GHCR) — demande et je la mets en place.
+
+> Le viewer expose la mémoire **sans authentification** : ne l'ouvre que sur ton LAN privé.
+
 ## Migration depuis claude-mem (une fois)
 
 ```powershell

@@ -8,6 +8,7 @@
   },
   "scripts": {
     "mcp": "node src/mcp-server.js",
+    "web": "node src/web.js",
     "setup": "node src/setup.js",
     "import": "node migrate/import-pg.js",
     "ping": "node src/ping.js"
