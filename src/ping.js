@@ -3,7 +3,10 @@ import { query, closePool } from "./db.js";
 import { loadConfig } from "./config.js";
 
 const cfg = loadConfig();
-console.log("config:", { pg: cfg.pg ? cfg.pg.replace(/:[^:@/]+@/, ":****@") : null, embed: cfg.embed, machine: cfg.machine });
+const target = cfg.pgPassword
+  ? `${cfg.pgUser}@${cfg.pgHost}:${cfg.pgPort}/${cfg.pgDatabase}`
+  : cfg.pg ? cfg.pg.replace(/:[^:@/]+@/, ":****@") : null;
+console.log("config:", { target, embed: cfg.embed, machine: cfg.machine, summarize: cfg.summarize });
 
 try {
   const v = await query("SELECT version()");

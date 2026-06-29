@@ -5,15 +5,18 @@ let pool = null;
 
 export function getPool() {
   if (pool) return pool;
-  const { pg: conn } = loadConfig();
-  if (!conn) throw new Error("claude-brain: no Postgres connection string (config.pg / BRAIN_PG)");
-  pool = new pg.Pool({
-    connectionString: conn,
-    max: 4,
-    // hooks are short-lived; fail fast instead of hanging the session
-    connectionTimeoutMillis: 4000,
-    idleTimeoutMillis: 5000,
-  });
+  const c = loadConfig();
+  const base = { max: 4, connectionTimeoutMillis: 4000, idleTimeoutMillis: 5000 };
+  let opts;
+  if (c.pgPassword) {
+    // discrete fields: password used verbatim, no URL parsing/encoding
+    opts = { ...base, host: c.pgHost, port: c.pgPort, user: c.pgUser, password: c.pgPassword, database: c.pgDatabase };
+  } else if (c.pg) {
+    opts = { ...base, connectionString: c.pg };
+  } else {
+    throw new Error("claude-brain: no Postgres connection (config.pgPassword+pgHost, or config.pg)");
+  }
+  pool = new pg.Pool(opts);
   pool.on("error", () => {}); // never let an idle-client error crash the process
   return pool;
 }

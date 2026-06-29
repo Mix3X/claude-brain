@@ -5,6 +5,9 @@ import { recent } from "../src/store.js";
 import { closePool } from "../src/db.js";
 import { loadConfig } from "../src/config.js";
 
+// Skip entirely inside the distiller's own headless Claude session (prevents recursion).
+if (process.env.BRAIN_INTERNAL === "1") process.exit(0);
+
 async function run() {
   const hook = await readHook();
   const project = projectName(hook);

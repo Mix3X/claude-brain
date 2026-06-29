@@ -18,7 +18,14 @@ export function loadConfig() {
     // fall through to env-only config; hooks must never crash on missing config
   }
   cached = {
+    // connection: discrete fields preferred (handles passwords with URL-unsafe chars
+    // like ^ * @ : / verbatim); falls back to a single connection string.
     pg: process.env.BRAIN_PG || raw.pg || null,
+    pgHost: process.env.BRAIN_PG_HOST || raw.pgHost || null,
+    pgPort: Number(process.env.BRAIN_PG_PORT || raw.pgPort || 5432),
+    pgUser: process.env.BRAIN_PG_USER || raw.pgUser || "nasmem",
+    pgPassword: process.env.BRAIN_PG_PASSWORD || raw.pgPassword || null,
+    pgDatabase: process.env.BRAIN_PG_DATABASE || raw.pgDatabase || "nasmem",
     embed: process.env.BRAIN_EMBED === "1" ? true : Boolean(raw.embed),
     machine: process.env.BRAIN_MACHINE || raw.machine || hostname(),
     // how many memories SessionStart injects as context
@@ -27,6 +34,7 @@ export function loadConfig() {
     summarize: process.env.BRAIN_SUMMARIZE === "1" ? true : Boolean(raw.summarize),
     summarizeModel: raw.summarizeModel || "claude-sonnet-4-6",
     anthropicApiKey: process.env.ANTHROPIC_API_KEY || raw.anthropicApiKey || null,
+    claudePath: raw.claudePath || null, // override path to the `claude` CLI if not in PATH
   };
   return cached;
 }

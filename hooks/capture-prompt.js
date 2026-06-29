@@ -4,6 +4,9 @@ import { readHook, projectName, withDeadline } from "./_lib.js";
 import { addMemory } from "../src/store.js";
 import { closePool } from "../src/db.js";
 
+// Skip inside the distiller's own headless Claude session (prevents recursion + noise).
+if (process.env.BRAIN_INTERNAL === "1") process.exit(0);
+
 async function run() {
   const hook = await readHook();
   const prompt = (hook.prompt || "").trim();

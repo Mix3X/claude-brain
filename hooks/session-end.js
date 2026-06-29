@@ -11,6 +11,9 @@ import { loadConfig } from "../src/config.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
+// Skip inside the distiller's own headless Claude session (prevents recursion).
+if (process.env.BRAIN_INTERNAL === "1") process.exit(0);
+
 function spawnSummarizer(transcriptPath, project, sessionId) {
   try {
     const child = spawn(

@@ -51,23 +51,25 @@ et teste la connexion au NAS. Options :
 
 Redémarre Claude Code à la fin. Vérifie avec `/mcp` que `brain` est connecté.
 
-## Résumeur LLM (observations distillées, optionnel)
+## Résumeur LLM (observations distillées)
 
-Comme claude-mem, claude-brain peut distiller chaque session en **observations durables**
-via Claude Sonnet — sans le sous-process SDK fragile. À la fin de session, le hook `Stop`
+Comme claude-mem, claude-brain distille chaque session en **observations durables** via
+Claude Sonnet — mais sans le sous-process SDK fragile. À la fin de session, le hook `Stop`
 stocke un résumé heuristique instantané (toujours), puis lance **en arrière-plan détaché**
-un appel direct à l'API Messages (Sonnet) qui range 1-6 observations réutilisables. Robuste :
-un seul appel, timeout 25 s, échec → log dans `~/.claude-brain/summarize.log`, jamais de
-retry ni de boucle, jamais de blocage de session.
+un distiller qui range 1-6 observations réutilisables. Robuste : un seul appel, timeout,
+échec → log dans `~/.claude-brain/summarize.log`, jamais de retry/boucle/blocage.
 
-Activation : `-ApiKey` à l'install, ou dans `config.json` :
+Deux backends, auto-sélectionnés :
 
-```json
-{ "summarize": true, "summarizeModel": "claude-sonnet-4-6", "anthropicApiKey": "sk-ant-..." }
-```
+- **CLI (défaut, recommandé)** : appelle `claude -p --model sonnet` en headless, qui utilise
+  ton **abonnement Claude Code** déjà loggé. **Aucune clé API, aucun coût supplémentaire.**
+  Un garde anti-récursion (`BRAIN_INTERNAL=1`) empêche la session headless de re-déclencher
+  les hooks.
+- **API** : si `anthropicApiKey` est défini dans `config.json` (ou `ANTHROPIC_API_KEY`),
+  utilise l'API Messages directement. Facturé sur la clé.
 
-(aussi lisible via la variable d'env `ANTHROPIC_API_KEY`). Coût = 1 appel Sonnet par session,
-facturé sur ta clé API (séparé de l'abonnement Claude Code).
+Activation : `"summarize": true` dans `config.json`. Sans clé → backend CLI automatiquement.
+Si `claude` n'est pas dans le PATH du process, précise `"claudePath": "C:\\...\\claude.exe"`.
 
 ---
 
@@ -121,8 +123,22 @@ l'historique. Index HNSW pgvector déjà prêt côté NAS.
 
 ```json
 {
-  "pg": "postgres://nasmem:****@192.168.1.28:5432/nasmem",
+  "pgHost": "192.168.1.28",
+  "pgPort": 5432,
+  "pgUser": "nasmem",
+  "pgPassword": "****",
+  "pgDatabase": "nasmem",
   "embed": false,
-  "machine": "PC-CARPE"
+  "machine": "PC-CARPE",
+  "summarize": true,
+  "summarizeModel": "claude-sonnet-4-6"
 }
 ```
+
+Champs séparés (recommandé) : le mot de passe est utilisé verbatim, même avec des caractères
+spéciaux (`^ * @ : /`) qui casseraient une URL. Forme URL `"pg": "postgres://..."` toujours
+acceptée en fallback.
+
+> Changer le mot de passe NAS après coup : `POSTGRES_PASSWORD` dans le compose **n'a aucun
+> effet** sur une base déjà initialisée. Utilise `ALTER USER nasmem PASSWORD '...';` sur
+> l'instance vivante (App shell TrueNAS, ou à distance via un client Postgres).

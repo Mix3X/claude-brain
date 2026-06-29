@@ -1,8 +1,12 @@
 {
-  "pg": "postgres://nasmem:CHANGE_ME@192.168.1.28:5432/nasmem",
+  "pgHost": "192.168.1.28",
+  "pgPort": 5432,
+  "pgUser": "nasmem",
+  "pgPassword": "CHANGE_ME",
+  "pgDatabase": "nasmem",
   "embed": false,
   "machine": "PC-NAME",
-  "summarize": false,
+  "summarize": true,
   "summarizeModel": "claude-sonnet-4-6",
   "anthropicApiKey": ""
 }

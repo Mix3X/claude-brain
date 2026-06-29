@@ -57,9 +57,13 @@ New-Item -ItemType Directory -Force -Path $cfgDir | Out-Null
 $cfgPath = Join-Path $cfgDir "config.json"
 if (Test-Path $cfgPath) { Copy-Item $cfgPath "$cfgPath.bak" -Force }
 $cfg = [ordered]@{
-  pg      = "postgres://${NasUser}:${NasPassword}@${NasIp}:${NasPort}/${NasDb}"
-  embed   = [bool]$Embed
-  machine = $Machine
+  pgHost     = $NasIp
+  pgPort     = $NasPort
+  pgUser     = $NasUser
+  pgPassword = $NasPassword
+  pgDatabase = $NasDb
+  embed      = [bool]$Embed
+  machine    = $Machine
 }
 if ($ApiKey) {
   $cfg.summarize = $true
