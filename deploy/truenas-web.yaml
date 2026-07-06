@@ -1,0 +1,26 @@
+# TrueNAS SCALE — Apps > Discover Apps > Custom App > "Install via YAML".
+# Viewer web du brain. Aucune image a builder : node:22-alpine + montage des sources.
+# Prerequis : copier le dossier claude-brain (au moins src/ + package.json) sur un dataset
+# du NAS, puis mettre son chemin dans le volume ci-dessous.
+# Change <MOT_DE_PASSE_NAS> (le meme que nasmem-db) et <POOL> avant install.
+services:
+  nasmem-web:
+    image: node:22-alpine
+    container_name: nasmem-web
+    restart: unless-stopped
+    working_dir: /app
+    # Installe pg au 1er demarrage (persiste dans node_modules du volume monte), puis lance le viewer.
+    command: sh -c "npm install --omit=dev --omit=optional --no-audit --no-fund && node src/web.js"
+    environment:
+      BRAIN_PG_HOST: "192.168.1.28"
+      BRAIN_PG_PORT: "5432"
+      BRAIN_PG_USER: "nasmem"
+      BRAIN_PG_PASSWORD: "<MOT_DE_PASSE_NAS>"
+      BRAIN_PG_DATABASE: "nasmem"
+      BRAIN_WEB_HOST: "0.0.0.0"
+      BRAIN_WEB_PORT: "8787"
+    volumes:
+      # Chemin du dossier claude-brain copie sur le NAS (contient src/ et package.json) :
+      - /mnt/Apps/claude-brain:/app
+    ports:
+      - "8787:8787"
